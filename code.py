@@ -131,6 +131,9 @@ async def genres(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # 📌 اجرای برنامه
 if __name__ == "__main__":
+    import os
+TOKEN = os.getenv("BOT_TOKEN")
+
     #j,;k = "7996114974:AAGh1Yq319dbEmI6xCYZGdtFAd8YIcfrgIs"
     # اجرای وب‌سرور کوچک برای Render
     threading.Thread(target=run).start()
