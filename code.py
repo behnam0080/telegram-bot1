@@ -2,6 +2,8 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 from keep_alive import run
 import threading
+import os
+
 
 # 📢 کانالی که عضویت در آن اجباری است
 CHANNEL_USERNAME = "@YourChannelUsername"   # مثلا: "@filmha_ir"
@@ -131,7 +133,6 @@ async def genres(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # 📌 اجرای برنامه
 if __name__ == "__main__":
-    import os
 TOKEN = os.getenv("BOT_TOKEN")
 
     #j,;k = "7996114974:AAGh1Yq319dbEmI6xCYZGdtFAd8YIcfrgIs"
@@ -148,3 +149,4 @@ TOKEN = os.getenv("BOT_TOKEN")
 
     print("✅ ربات در حال اجراست...")
     app.run_polling()
+
