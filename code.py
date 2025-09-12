@@ -76,7 +76,7 @@ async def check_subscription(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     if not await is_subscribed(user_id, context.bot):
         keyboard = [
-            [InlineKeyboardButton("📢 عضویت در کانال", url=CHANNEL_LINK)],
+            [InlineKeyboardButton("📢 عضویت در کانال", url=t.me/varizihafilm)],
             [InlineKeyboardButton("✔ بررسی مجدد", callback_data="check_subscription")]
         ]
         await query.edit_message_text(
@@ -138,3 +138,4 @@ if __name__ == "__main__":
     except Exception:
         print("ERROR: exception while running bot:")
         traceback.print_exc()
+
