@@ -5,11 +5,20 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 from keep_alive import run  # فایل keep_alive.py باید توی پروژه باشه
 
-# 📢 کانالی که عضویت در آن اجباری است
-CHANNEL_USERNAME = "@accept_gp"                
-CHANNEL_LINK = "https://t.me/accept_gp"        
+# 📂 بررسی پوشه images و چاپ فایل‌ها در لاگ
+folder = "images"
+if os.path.exists(folder):
+    print("📂 فایل‌های موجود در پوشه images/:")
+    for file in os.listdir(folder):
+        print(" -", file)
+else:
+    print("❌ پوشه images/ پیدا نشد!")
 
-# 🎬 دیتابیس فیلم‌ها (عنوان + توضیح + مسیر عکس در پوشه images/)
+# 📢 کانالی که عضویت در آن اجباری است
+CHANNEL_USERNAME = "@accept_gp"
+CHANNEL_LINK = "https://t.me/accept_gp"
+
+# 🎬 دیتابیس فیلم‌ها
 films_by_genre = {
     "اکشن": [
         {"title": "چ", "desc": "به کارگردانی ابراهیم حاتمی‌کیا درباره شهید چمران.", "image": "images/che.jpg"},
@@ -28,10 +37,9 @@ films_by_genre = {
     ],
 }
 
-# حافظه ساده برای کاربران
 user_started = set()
 
-# 📌 بررسی عضویت (ربات باید ادمین کانال باشه)
+# 📌 بررسی عضویت
 async def is_subscribed(user_id, bot):
     try:
         member = await bot.get_chat_member(CHANNEL_USERNAME, user_id)
@@ -49,7 +57,6 @@ def genre_menu():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
-    # بررسی عضویت
     if not await is_subscribed(user_id, context.bot):
         keyboard = [
             [InlineKeyboardButton("📢 عضویت در کانال", url=CHANNEL_LINK)],
@@ -61,7 +68,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    # خوش‌آمدگویی
     if user_id not in user_started:
         user_started.add(user_id)
         await update.message.reply_text(
