@@ -22,7 +22,7 @@ CHANNEL_LINK = "https://t.me/accept_gp"
 films_by_genre = {
     "اکشن": [
         {"title": "چ", "desc": "به کارگردانی ابراهیم حاتمی‌کیا درباره شهید چمران.", "image": "images/che.jpg"},
-        {"title": "متری شیش و نیم", "desc": "درامی پلیسی با موضوع مواد مخدر.", "image": "images/metri6.jpg"},
+        {"title": "متری شیش و نیم", "desc": "درامی پلیسی با موضوع مواد مخدر.", "image": "images/metri6.jpg"},  # مطمئن شو این فایل رو داری
         {"title": "قاتل اهلی", "desc": "فیلمی از مسعود کیمیایی با محوریت مسائل اجتماعی.", "image": "images/ghatel.jpg"},
     ],
     "درام": [
@@ -159,3 +159,4 @@ if __name__ == "__main__":
     except Exception:
         print("❌ ERROR: exception while running bot:")
         traceback.print_exc()
+
