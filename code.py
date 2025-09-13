@@ -6,8 +6,8 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandle
 from keep_alive import run  # فایل keep_alive.py باید در پروژه باشد
 
 # کانال (اسم واقعی کانال را اینجا بگذار)
-CHANNEL_USERNAME = "@YourChannelUsername"
-CHANNEL_LINK = "https://t.me/YourChannelUsername"
+CHANNEL_USERNAME = "@accept_gp"
+CHANNEL_LINK = "https://t.me/accept_gp"
 
 # دیتابیس ساده فیلم‌ها
 films_by_genre = {
@@ -49,7 +49,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not await is_subscribed(user_id, context.bot):
         keyboard = [
-            [InlineKeyboardButton("📢 عضویت در کانال", url=CHANNEL_LINK)],
+            [InlineKeyboardButton("📢 عضویت در کانال", url=accept_gp)],
             [InlineKeyboardButton("✔ بررسی عضویت", callback_data="check_subscription")]
         ]
         await update.message.reply_text(
@@ -76,7 +76,7 @@ async def check_subscription(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     if not await is_subscribed(user_id, context.bot):
         keyboard = [
-            [InlineKeyboardButton("📢 عضویت در کانال", url=t.me/varizihafilm)],
+            [InlineKeyboardButton("📢 عضویت در کانال", url=t.me/accept_gp)],
             [InlineKeyboardButton("✔ بررسی مجدد", callback_data="check_subscription")]
         ]
         await query.edit_message_text(
@@ -138,4 +138,5 @@ if __name__ == "__main__":
     except Exception:
         print("ERROR: exception while running bot:")
         traceback.print_exc()
+
 
