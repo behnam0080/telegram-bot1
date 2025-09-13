@@ -5,11 +5,11 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 from keep_alive import run  # فایل keep_alive.py باید در پروژه باشد
 
-# کانال (اسم واقعی کانال را اینجا بگذار)
-CHANNEL_USERNAME = "@accept_gp"
-CHANNEL_LINK = "https://t.me/accept_gp"
+# 📢 کانالی که عضویت در آن اجباری است
+CHANNEL_USERNAME = "@accept_gp"                # یوزرنیم کانال
+CHANNEL_LINK = "https://t.me/accept_gp"        # لینک کانال
 
-# دیتابیس ساده فیلم‌ها
+# 🎬 دیتابیس ساده فیلم‌ها
 films_by_genre = {
     "اکشن": [
         {"title": "چ", "desc": "به کارگردانی ابراهیم حاتمی‌کیا درباره شهید چمران."},
@@ -28,9 +28,10 @@ films_by_genre = {
     ],
 }
 
+# حافظه ساده برای کاربران
 user_started = set()
 
-# بررسی عضویت (توجه: ربات باید ادمین کانال باشد)
+# 📌 بررسی عضویت (ربات باید ادمین کانال باشد)
 async def is_subscribed(user_id, bot):
     try:
         member = await bot.get_chat_member(CHANNEL_USERNAME, user_id)
@@ -38,18 +39,20 @@ async def is_subscribed(user_id, bot):
     except Exception:
         return False
 
+# 📌 منوی ژانرها
 def genre_menu():
     return InlineKeyboardMarkup(
         [[InlineKeyboardButton(genre, callback_data=genre)] for genre in films_by_genre]
     )
 
-# /start
+# 📌 /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
+    # بررسی عضویت
     if not await is_subscribed(user_id, context.bot):
         keyboard = [
-            [InlineKeyboardButton("📢 عضویت در کانال", url=accept_gp)],
+            [InlineKeyboardButton("📢 عضویت در کانال", url=CHANNEL_LINK)],
             [InlineKeyboardButton("✔ بررسی عضویت", callback_data="check_subscription")]
         ]
         await update.message.reply_text(
@@ -58,17 +61,22 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
+    # خوش‌آمدگویی
     if user_id not in user_started:
         user_started.add(user_id)
         await update.message.reply_text(
-            "👋 خوش اومدی! این اولین باره که وارد ربات شدی.\nاینجا می‌تونی ژانر فیلم مورد علاقه‌ات رو انتخاب کنی 🎬"
+            "👋 خوش اومدی! این اولین باره که وارد ربات شدی.\n"
+            "اینجا می‌تونی ژانر فیلم مورد علاقه‌ات رو انتخاب کنی 🎬"
         )
     else:
         await update.message.reply_text("😊 دوباره خوش اومدی!")
 
-    await update.message.reply_text("ژانر مورد علاقه‌ات رو انتخاب کن:", reply_markup=genre_menu())
+    await update.message.reply_text(
+        "ژانر مورد علاقه‌ات رو انتخاب کن:",
+        reply_markup=genre_menu()
+    )
 
-# بررسی عضویت با دکمه
+# 📌 بررسی دوباره عضویت
 async def check_subscription(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -76,7 +84,7 @@ async def check_subscription(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     if not await is_subscribed(user_id, context.bot):
         keyboard = [
-            [InlineKeyboardButton("📢 عضویت در کانال", url=t.me/accept_gp)],
+            [InlineKeyboardButton("📢 عضویت در کانال", url=CHANNEL_LINK)],
             [InlineKeyboardButton("✔ بررسی مجدد", callback_data="check_subscription")]
         ]
         await query.edit_message_text(
@@ -85,9 +93,12 @@ async def check_subscription(update: Update, context: ContextTypes.DEFAULT_TYPE)
         )
     else:
         await query.edit_message_text("✅ عضویتت تایید شد! حالا می‌تونی از امکانات ربات استفاده کنی.")
-        await query.message.reply_text("ژانر مورد علاقه‌ات رو انتخاب کن:", reply_markup=genre_menu())
+        await query.message.reply_text(
+            "ژانر مورد علاقه‌ات رو انتخاب کن:",
+            reply_markup=genre_menu()
+        )
 
-# انتخاب ژانر
+# 📌 انتخاب ژانر
 async def genre_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -99,31 +110,38 @@ async def genre_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await context.bot.send_message(chat_id=query.message.chat_id, text=caption_text)
 
     keyboard = [[InlineKeyboardButton("🔙 بازگشت به انتخاب ژانر", callback_data="back_to_genres")]]
-    await context.bot.send_message(chat_id=query.message.chat_id, text="⬇️ اگر می‌خوای به منوی ژانرها برگردی:", reply_markup=InlineKeyboardMarkup(keyboard))
+    await context.bot.send_message(
+        chat_id=query.message.chat_id,
+        text="⬇️ اگر می‌خوای به منوی ژانرها برگردی:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
 
-# بازگشت
+# 📌 بازگشت به ژانرها
 async def back_to_genres(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-    await query.edit_message_text("🎭 دوباره ژانر مورد علاقه‌ات رو انتخاب کن:", reply_markup=genre_menu())
+    await query.edit_message_text(
+        "🎭 دوباره ژانر مورد علاقه‌ات رو انتخاب کن:",
+        reply_markup=genre_menu()
+    )
 
-# /genres
+# 📌 /genres
 async def genres(update: Update, context: ContextTypes.DEFAULT_TYPE):
     genres_list = "\n".join([f"- {g}" for g in films_by_genre.keys()])
     await update.message.reply_text(f"🎭 لیست ژانرها:\n{genres_list}")
 
-
+# 📌 اجرای برنامه
 if __name__ == "__main__":
-    # خواندن توکن از متغیر محیطی (Render: Settings → Environment)
+    # خواندن توکن از متغیر محیطی
     TOKEN = os.getenv("BOT_TOKEN")
     if not TOKEN:
-        print("ERROR: BOT_TOKEN environment variable is not set. Set it in Render (Environment).")
+        print("❌ ERROR: BOT_TOKEN environment variable is not set. Set it in Render (Environment).")
         raise SystemExit(1)
 
-    # اجرای وب‌سرور keep-alive در یک thread جدا (برای Render)
+    # اجرای وب‌سرور keep-alive در یک Thread جدا
     threading.Thread(target=run, daemon=True).start()
 
-    # ساخت اپلیکیشن تلگرام و ثبت هندلرها
+    # ساخت اپلیکیشن و ثبت هندلرها
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("genres", genres))
@@ -131,12 +149,10 @@ if __name__ == "__main__":
     app.add_handler(CallbackQueryHandler(genre_selected, pattern="^(اکشن|درام|کمدی)$"))
     app.add_handler(CallbackQueryHandler(back_to_genres, pattern="^back_to_genres$"))
 
-    # اجرای Polling با لاگ خطا
+    # اجرای Polling
     try:
         print("✅ ربات در حال اجراست...")
         app.run_polling()
     except Exception:
-        print("ERROR: exception while running bot:")
+        print("❌ ERROR: exception while running bot:")
         traceback.print_exc()
-
-
