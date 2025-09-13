@@ -3,35 +3,35 @@ import threading
 import traceback
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
-from keep_alive import run  # فایل keep_alive.py باید در پروژه باشد
+from keep_alive import run  # فایل keep_alive.py باید توی پروژه باشه
 
 # 📢 کانالی که عضویت در آن اجباری است
 CHANNEL_USERNAME = "@accept_gp"                
 CHANNEL_LINK = "https://t.me/accept_gp"        
 
-# 🎬 دیتابیس فیلم‌ها (هر فیلم: عنوان + توضیح + لینک عکس)
+# 🎬 دیتابیس فیلم‌ها (عنوان + توضیح + مسیر عکس در پوشه images/)
 films_by_genre = {
     "اکشن": [
-        {"title": "چ", "desc": "به کارگردانی ابراهیم حاتمی‌کیا درباره شهید چمران.", "image": "https://upload.wikimedia.org/wikipedia/fa/8/82/Che_film.jpg"},
-        {"title": "متری شیش و نیم", "desc": "درامی پلیسی با موضوع مواد مخدر.", "image": "https://upload.wikimedia.org/wikipedia/fa/f/f3/Metri_ShiishoNim.jpg"},
-        {"title": "قاتل اهلی", "desc": "فیلمی از مسعود کیمیایی با محوریت مسائل اجتماعی.", "image": "https://upload.wikimedia.org/wikipedia/fa/3/31/Ghatel_Ahli.jpg"},
+        {"title": "چ", "desc": "به کارگردانی ابراهیم حاتمی‌کیا درباره شهید چمران.", "image": "images/che.jpg"},
+        {"title": "متری شیش و نیم", "desc": "درامی پلیسی با موضوع مواد مخدر.", "image": "images/metri6.jpg"},
+        {"title": "قاتل اهلی", "desc": "فیلمی از مسعود کیمیایی با محوریت مسائل اجتماعی.", "image": "images/ghatel.jpg"},
     ],
     "درام": [
-        {"title": "جدایی نادر از سیمین", "desc": "برنده اسکار بهترین فیلم خارجی زبان.", "image": "https://upload.wikimedia.org/wikipedia/fa/c/c1/A_Separation_Poster.jpg"},
-        {"title": "ابد و یک روز", "desc": "روایتی تلخ از فقر و مشکلات خانوادگی.", "image": "https://upload.wikimedia.org/wikipedia/fa/4/47/AbadO_Yek_Rooz.jpg"},
-        {"title": "درباره الی", "desc": "فیلمی معمایی و پرمخاطب از اصغر فرهادی.", "image": "https://upload.wikimedia.org/wikipedia/fa/b/b9/Darbareye_Elly_poster.jpg"},
+        {"title": "جدایی نادر از سیمین", "desc": "برنده اسکار بهترین فیلم خارجی زبان.", "image": "images/jodaei.jpg"},
+        {"title": "ابد و یک روز", "desc": "روایتی تلخ از فقر و مشکلات خانوادگی.", "image": "images/abad.jpg"},
+        {"title": "درباره الی", "desc": "فیلمی معمایی و پرمخاطب از اصغر فرهادی.", "image": "images/elly.jpg"},
     ],
     "کمدی": [
-        {"title": "مارمولک", "desc": "کمدی اجتماعی محبوب کمال تبریزی.", "image": "https://upload.wikimedia.org/wikipedia/fa/7/76/Marmoolak_movie.jpg"},
-        {"title": "اخراجی‌ها", "desc": "کمدی جنگی پرمخاطب دهه ۸۰.", "image": "https://upload.wikimedia.org/wikipedia/fa/d/dc/Ekhrajiha_poster.jpg"},
-        {"title": "هزارپا", "desc": "یکی از پرفروش‌ترین کمدی‌های تاریخ سینمای ایران.", "image": "https://upload.wikimedia.org/wikipedia/fa/a/a7/Hezarpa_poster.jpg"},
+        {"title": "مارمولک", "desc": "کمدی اجتماعی محبوب کمال تبریزی.", "image": "images/marmoolak.jpg"},
+        {"title": "اخراجی‌ها", "desc": "کمدی جنگی پرمخاطب دهه ۸۰.", "image": "images/ekhrajia.jpg"},
+        {"title": "هزارپا", "desc": "یکی از پرفروش‌ترین کمدی‌های تاریخ سینمای ایران.", "image": "images/hezarpa.jpg"},
     ],
 }
 
 # حافظه ساده برای کاربران
 user_started = set()
 
-# 📌 بررسی عضویت
+# 📌 بررسی عضویت (ربات باید ادمین کانال باشه)
 async def is_subscribed(user_id, bot):
     try:
         member = await bot.get_chat_member(CHANNEL_USERNAME, user_id)
@@ -49,6 +49,7 @@ def genre_menu():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
+    # بررسی عضویت
     if not await is_subscribed(user_id, context.bot):
         keyboard = [
             [InlineKeyboardButton("📢 عضویت در کانال", url=CHANNEL_LINK)],
@@ -60,6 +61,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
+    # خوش‌آمدگویی
     if user_id not in user_started:
         user_started.add(user_id)
         await update.message.reply_text(
@@ -90,7 +92,7 @@ async def check_subscription(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await query.edit_message_text("✅ عضویتت تایید شد! حالا می‌تونی از امکانات ربات استفاده کنی.")
         await query.message.reply_text("ژانر مورد علاقه‌ات رو انتخاب کن:", reply_markup=genre_menu())
 
-# 📌 انتخاب ژانر (ارسال عکس + توضیح)
+# 📌 انتخاب ژانر (ارسال عکس از پوشه images/)
 async def genre_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -98,11 +100,18 @@ async def genre_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.edit_message_text(text=f"✅ ژانر انتخابی: {genre}")
 
     for film in films_by_genre[genre]:
-        await context.bot.send_photo(
-            chat_id=query.message.chat_id,
-            photo=film["image"],
-            caption=f"{film['title']}\n\n{film['desc']}"
-        )
+        try:
+            with open(film["image"], "rb") as img:
+                await context.bot.send_photo(
+                    chat_id=query.message.chat_id,
+                    photo=img,
+                    caption=f"{film['title']}\n\n{film['desc']}"
+                )
+        except FileNotFoundError:
+            await context.bot.send_message(
+                chat_id=query.message.chat_id,
+                text=f"⚠️ عکس {film['title']} پیدا نشد!"
+            )
 
     keyboard = [[InlineKeyboardButton("🔙 بازگشت به انتخاب ژانر", callback_data="back_to_genres")]]
     await context.bot.send_message(
