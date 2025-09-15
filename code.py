@@ -1,6 +1,5 @@
 import os
 import traceback
-from flask import Flask, request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
@@ -130,37 +129,32 @@ async def genres(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # -------------------------------
 # اجرای Webhook روی Render
 # -------------------------------
-TOKEN = os.getenv("BOT_TOKEN")
-if not TOKEN:
-    print("❌ ERROR: BOT_TOKEN environment variable is not set.")
-    raise SystemExit(1)
-
-app = Application.builder().token(TOKEN).build()
-
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("genres", genres))
-app.add_handler(CallbackQueryHandler(check_subscription, pattern="^check_subscription$"))
-app.add_handler(CallbackQueryHandler(genre_selected, pattern="^(اکشن|درام|کمدی)$"))
-app.add_handler(CallbackQueryHandler(back_to_genres, pattern="^back_to_genres$"))
-
-# Flask سرور
-flask_app = Flask(__name__)
-
-@flask_app.route(f"/{TOKEN}", methods=["POST"])
-def webhook():
-    update = Update.de_json(request.get_json(force=True), app.bot)
-    app.update_queue.put_nowait(update)
-    return "OK", 200
-
 if __name__ == "__main__":
-    PORT = int(os.environ.get("PORT", 10000))
-    webhook_url = f"https://{os.environ['RENDER_EXTERNAL_HOSTNAME']}/{TOKEN}"
+    TOKEN = os.getenv("BOT_TOKEN")
+    if not TOKEN:
+        print("❌ ERROR: BOT_TOKEN environment variable is not set.")
+        raise SystemExit(1)
+
+    app = Application.builder().token(TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("genres", genres))
+    app.add_handler(CallbackQueryHandler(check_subscription, pattern="^check_subscription$"))
+    app.add_handler(CallbackQueryHandler(genre_selected, pattern="^(اکشن|درام|کمدی)$"))
+    app.add_handler(CallbackQueryHandler(back_to_genres, pattern="^back_to_genres$"))
 
     try:
-        app.bot.set_webhook(url=webhook_url)
-        print(f"✅ Webhook set on {webhook_url}")
-    except Exception:
-        print("❌ ERROR: failed to set webhook:")
-        traceback.print_exc()
+        PORT = int(os.environ.get("PORT", 5000))
+        webhook_url = f"https://{os.environ['RENDER_EXTERNAL_HOSTNAME']}/{TOKEN}"
 
-    flask_app.run(host="0.0.0.0", port=PORT)
+        print(f"✅ Webhook set on {webhook_url}")
+
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=PORT,
+            url_path=TOKEN,
+            webhook_url=webhook_url
+        )
+    except Exception:
+        print("❌ ERROR: failed to run webhook:")
+        traceback.print_exc()
