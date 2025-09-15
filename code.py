@@ -1,5 +1,4 @@
 import os
-import threading
 import traceback
 from flask import Flask, request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -89,7 +88,7 @@ async def check_subscription(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await query.edit_message_text("✅ عضویتت تایید شد! حالا می‌تونی از امکانات ربات استفاده کنی.")
         await query.message.reply_text("ژانر مورد علاقه‌ات رو انتخاب کن:", reply_markup=genre_menu())
 
-# 📌 انتخاب ژانر (ارسال عکس از پوشه images/)
+# 📌 انتخاب ژانر
 async def genre_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -128,7 +127,6 @@ async def genres(update: Update, context: ContextTypes.DEFAULT_TYPE):
     genres_list = "\n".join([f"- {g}" for g in films_by_genre.keys()])
     await update.message.reply_text(f"🎭 لیست ژانرها:\n{genres_list}")
 
-
 # -------------------------------
 # اجرای Webhook روی Render
 # -------------------------------
@@ -156,9 +154,13 @@ def webhook():
 
 if __name__ == "__main__":
     PORT = int(os.environ.get("PORT", 10000))
-    # ست کردن webhook
     webhook_url = f"https://{os.environ['RENDER_EXTERNAL_HOSTNAME']}/{TOKEN}"
-    app.bot.set_webhook(url=webhook_url)
 
-    print(f"✅ Webhook set on {webhook_url}")
+    try:
+        app.bot.set_webhook(url=webhook_url)
+        print(f"✅ Webhook set on {webhook_url}")
+    except Exception:
+        print("❌ ERROR: failed to set webhook:")
+        traceback.print_exc()
+
     flask_app.run(host="0.0.0.0", port=PORT)
