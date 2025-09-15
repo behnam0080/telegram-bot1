@@ -1,20 +1,11 @@
 import os
 import threading
 import traceback
+from flask import Flask, request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
-from keep_alive import run  # فایل keep_alive.py باید توی پروژه باشه
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
-# 📂 بررسی پوشه images و چاپ فایل‌ها در لاگ
-folder = "images"
-if os.path.exists(folder):
-    print("📂 فایل‌های موجود در پوشه images/:")
-    for file in os.listdir(folder):
-        print(" -", file)
-else:
-    print("❌ پوشه images/ پیدا نشد!")
-
-# 📢 کانالی که عضویت در آن اجباری است
+# 📢 اطلاعات کانال
 CHANNEL_USERNAME = "@accept_gp"
 CHANNEL_LINK = "https://t.me/accept_gp"
 
@@ -22,7 +13,7 @@ CHANNEL_LINK = "https://t.me/accept_gp"
 films_by_genre = {
     "اکشن": [
         {"title": "چ", "desc": "به کارگردانی ابراهیم حاتمی‌کیا درباره شهید چمران.", "image": "images/che.jpg"},
-        {"title": "متری شیش و نیم", "desc": "درامی پلیسی با موضوع مواد مخدر.", "image": "images/metri6.jpg"},  # مطمئن شو این فایل رو داری
+        {"title": "متری شیش و نیم", "desc": "درامی پلیسی با موضوع مواد مخدر.", "image": "images/metri6.jpg"},
         {"title": "قاتل اهلی", "desc": "فیلمی از مسعود کیمیایی با محوریت مسائل اجتماعی.", "image": "images/ghatel.jpg"},
     ],
     "درام": [
@@ -63,7 +54,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("✔ بررسی عضویت", callback_data="check_subscription")]
         ]
         await update.message.reply_text(
-            "👋 خوش اومدی!\n\nبرای استفاده از ربات باید اول عضو کانال زیر بشی ⬇️",
+            "👋 خوش اومدی!\n\nبرای استفاده از ربات باید اول عضو کانال بشی ⬇️",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
         return
@@ -137,26 +128,37 @@ async def genres(update: Update, context: ContextTypes.DEFAULT_TYPE):
     genres_list = "\n".join([f"- {g}" for g in films_by_genre.keys()])
     await update.message.reply_text(f"🎭 لیست ژانرها:\n{genres_list}")
 
-# 📌 اجرای برنامه
+
+# -------------------------------
+# اجرای Webhook روی Render
+# -------------------------------
+TOKEN = os.getenv("BOT_TOKEN")
+if not TOKEN:
+    print("❌ ERROR: BOT_TOKEN environment variable is not set.")
+    raise SystemExit(1)
+
+app = Application.builder().token(TOKEN).build()
+
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("genres", genres))
+app.add_handler(CallbackQueryHandler(check_subscription, pattern="^check_subscription$"))
+app.add_handler(CallbackQueryHandler(genre_selected, pattern="^(اکشن|درام|کمدی)$"))
+app.add_handler(CallbackQueryHandler(back_to_genres, pattern="^back_to_genres$"))
+
+# Flask سرور
+flask_app = Flask(__name__)
+
+@flask_app.route(f"/{TOKEN}", methods=["POST"])
+def webhook():
+    update = Update.de_json(request.get_json(force=True), app.bot)
+    app.update_queue.put_nowait(update)
+    return "OK", 200
+
 if __name__ == "__main__":
-    TOKEN = os.getenv("BOT_TOKEN")
-    if not TOKEN:
-        print("❌ ERROR: BOT_TOKEN environment variable is not set. Set it in Render (Environment).")
-        raise SystemExit(1)
+    PORT = int(os.environ.get("PORT", 10000))
+    # ست کردن webhook
+    webhook_url = f"https://{os.environ['RENDER_EXTERNAL_HOSTNAME']}/{TOKEN}"
+    app.bot.set_webhook(url=webhook_url)
 
-    threading.Thread(target=run, daemon=True).start()
-
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("genres", genres))
-    app.add_handler(CallbackQueryHandler(check_subscription, pattern="^check_subscription$"))
-    app.add_handler(CallbackQueryHandler(genre_selected, pattern="^(اکشن|درام|کمدی)$"))
-    app.add_handler(CallbackQueryHandler(back_to_genres, pattern="^back_to_genres$"))
-
-    try:
-        print("✅ ربات در حال اجراست...")
-        app.run_polling()
-    except Exception:
-        print("❌ ERROR: exception while running bot:")
-        traceback.print_exc()
-
+    print(f"✅ Webhook set on {webhook_url}")
+    flask_app.run(host="0.0.0.0", port=PORT)
