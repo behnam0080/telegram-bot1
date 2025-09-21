@@ -52,7 +52,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("✔ بررسی عضویت", callback_data="check_subscription")]
         ]
         await update.message.reply_text(
-            "👋 خوش اومدی!\n\nبرای استفاده از ربات باید اول عضو کانال بشی ⬇️",
+            "👋 خوش اومدی!\n\n این ربات بهت کمک میکنه فیلم مورد علاقه تو پیدا کنی\n برای استفاده از ربات باید اول عضو کانال بش⬇️",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
         return
@@ -60,7 +60,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if user_id not in user_started:
         user_started.add(user_id)
         await update.message.reply_text(
-            "👋 خوش اومدی! این اولین باره که وارد ربات شدی.\n"
+            "👋 خوش اومدی بازم! این اولین باره که وارد ربات شدی.\n"
             "اینجا می‌تونی ژانر فیلم مورد علاقه‌ات رو انتخاب کنی 🎬"
         )
     else:
@@ -158,3 +158,4 @@ if __name__ == "__main__":
     except Exception:
         print("❌ ERROR: failed to run webhook:")
         traceback.print_exc()
+
