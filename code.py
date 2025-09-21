@@ -66,7 +66,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("😊 دوباره خوش اومدی!")
 
-    await update.message.reply_text("ژانر مورد علاقه‌ات رو انتخاب کن:", reply_markup=genre_menu())
+    await update.message.reply_text("😊ژانر مورد علاقه‌ات رو انتخاب کن:", reply_markup=genre_menu())
 
 # 📌 بررسی دوباره عضویت
 async def check_subscription(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -158,4 +158,5 @@ if __name__ == "__main__":
     except Exception:
         print("❌ ERROR: failed to run webhook:")
         traceback.print_exc()
+
 
